@@ -1,0 +1,68 @@
+# -----------------------------
+# Python cache / compiled files
+# -----------------------------
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# -----------------------------
+# Virtual environments
+# -----------------------------
+segment-env/
+venv/
+env/
+.venv/
+
+# -----------------------------
+# Jupyter / IPython
+# -----------------------------
+.ipynb_checkpoints/
+
+# -----------------------------
+# OS junk files
+# -----------------------------
+.DS_Store
+Thumbs.db
+
+# -----------------------------
+# Dataset / raw images (too large)
+# -----------------------------
+Combined/
+*.jpg
+*.jpeg
+*.png
+*.JPG
+
+# -----------------------------
+# Generated segmentation outputs
+# -----------------------------
+segmentation_results/
+*.csv
+*.tex
+*.txt
+*.log
+
+# If you want to keep reports but ignore visuals:
+segmentation_results/visualizations/
+segmentation_results/figures/
+
+# -----------------------------
+# Temporary / debug files
+# -----------------------------
+*.tmp
+*.swp
+*.bak
+
+# -----------------------------
+# Python packaging / builds
+# -----------------------------
+build/
+dist/
+*.egg-info/
+
+# -----------------------------
+# IDE settings
+# -----------------------------
+.vscode/
+.idea/
