@@ -239,10 +239,10 @@ Binary filtering retained:
 If you use this pipeline or dataset, please cite:
 
 ```bibtex
-@article{dohaScript2024,
+@article{dohaScript2026,
   title={DohaScript: A Large-Scale Multi-Writer Dataset for Continuous Handwritten Hindi Text},
   author={Singh, Kunwar Arpit and Prakash, Ankush and Lone, Haroon R.},
-  year={2024}
+  year={2026}
 }
 ```
 
