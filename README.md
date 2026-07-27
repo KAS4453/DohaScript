@@ -1,30 +1,33 @@
-# DohaScript Line Segmentation & Quality Analysis Pipeline
+# Continuous Handwritten Devanagari Corpus — Data Pipeline & Baseline Experiments
 
-This repository contains the **research-grade preprocessing, quality validation, and line segmentation pipeline** developed for the **DohaScript dataset**: a large-scale multi-writer dataset of continuous handwritten Hindi (Devanagari) text.
+This repository contains the **research-grade preprocessing, quality validation, line segmentation, OCR benchmarking, and handwriting generation pipeline** developed for a large-scale multi-writer dataset of continuous handwritten Hindi (Devanagari) text.
 
 The codebase provides:
 
 * Automated handwriting image quality filtering (blur + CNN-based refinement)
 * Robust page-level **line segmentation** for handwritten Hindi documents
 * Difficulty labeling (**Easy / Medium / Complex**) based on segmentation stability
-* Statistical reporting and LaTeX table generation for paper-ready results
+* **OCR benchmarking** across Tesseract, TrOCR, and Sarvam AI, with a synthetic-data control experiment
+* A **word-level handwriting generation baseline** (adapted GANwriting) for writer-conditioned style synthesis
+* Statistical reporting for paper-ready results
 * Publication-quality figure generation
 
 ---
 
 ## Project
 
-DohaScript is a controlled parallel handwriting dataset where **531 writers** transcribed the same six Hindi dohas. This setup enables analysis of handwriting variation independent of lexical content.
+The corpus is a controlled parallel handwriting dataset where **531 writers** transcribed the same six traditional Hindi dohas (couplets). This setup enables analysis of handwriting variation independent of lexical content.
 
-The dataset is described in the accompanying paper:
+The dataset and experiments are described in the accompanying paper:
 
-> *DohaScript: A Large-Scale Multi-Writer Dataset for Continuous Handwritten Hindi Text* (531 writers, continuous handwritten couplets).
+> *A Parallel Multi-Writer Benchmark for Continuous Handwritten Devanagari Recognition* (531 writers, continuous handwritten couplets).
 
-The repository focuses on the **data validation stage**:
+The repository now spans four stages of the research pipeline:
 
-* Quality assessment via Laplacian variance blur scores
-* CNN-based filtering to retain high-quality samples
-* Line segmentation difficulty profiling over all pages
+* **Data validation**: quality assessment via Laplacian variance blur scores and CNN-based filtering
+* **Structural profiling**: line segmentation difficulty labeling over all pages
+* **Recognition benchmarking**: OCR evaluation (Tesseract, TrOCR, Sarvam AI) on real vs. synthetic handwriting
+* **Generative modeling**: a word-level GANwriting baseline for writer-style-conditioned synthesis
 
 ---
 
@@ -34,7 +37,10 @@ The repository focuses on the **data validation stage**:
 .
 ├── line_segmentation_research.py     # Main segmentation + scoring pipeline
 ├── generate_paper_figures.py         # Script for publication-ready plots
-├── quality.ipynb                    # CNN-based blur classification notebook
+├── quality.ipynb                     # CNN-based blur classification notebook
+├── adapted-GANwriting/               # Devanagari-adapted GANwriting model, training scripts
+├── eval_dohascript/                  # Evaluation of Generated Images
+├── ocr_benchmark (1).py              # OCR benchmarking (Tesseract, TrOCR, Sarvam AI) + synthetic reference eval
 └── README.md
 ```
 
@@ -48,10 +54,16 @@ Install dependencies:
 pip install numpy opencv-python pandas scipy matplotlib seaborn
 ```
 
-(Optional, for CNN notebook):
+(Optional, for CNN notebook and generation baseline):
 
 ```bash
 pip install torch torchvision
+```
+
+(Optional, for OCR benchmarking):
+
+```bash
+pip install pytesseract transformers
 ```
 
 ---
@@ -141,10 +153,10 @@ Score range: 0 – 100
 Each page is labeled as:
 
 | Difficulty | Criteria                                  |
-| ---------- | ----------------------------------------- |
-| Easy       | Perfect or near-perfect segmentation      |
-| Medium     | Minor spacing/height irregularities       |
-| Complex    | Overlaps, irregular baselines, high error |
+| ---------- | ------------------------------------------ |
+| Easy       | Perfect or near-perfect segmentation       |
+| Medium     | Minor spacing/height irregularities        |
+| Complex    | Overlaps, irregular baselines, high error  |
 
 Implemented in:
 
@@ -152,43 +164,70 @@ Implemented in:
 classify_difficulty(score, line_diff)
 ```
 
+Result summary (N=531 pages): 20.7% Easy, 26.6% Medium, 52.7% Complex, with 29.57% of pages achieving perfect (12/12 line) segmentation.
+
 ---
 
-## 📑 Research Outputs
+## 🧪 New: OCR Benchmark Experiments
 
-### CSV Report
+To quantify how well existing OCR systems handle continuous handwritten Devanagari, the pipeline now benchmarks:
 
-```bash
-segmentation_results/segmentation_results_detailed.csv
-```
+* **Tesseract** (four configurations: default, OEM 3/PSM 6, PSM 4, Hindi+English)
+* **TrOCR** (`microsoft/trocr-base-handwritten`, zero-shot cross-script)
+* **Sarvam AI** Document Intelligence (contemporary Indic-specific OCR API)
 
-Contains per-image:
-
-* Method selected
-* Processing time
-* Segmentation score
-* Difficulty label
-
-### LaTeX Tables
-
-Automatically generated:
+Run with:
 
 ```bash
-segmentation_results/latex_tables.tex
+cd eval_dohascript/
+python ocr_benchmark.py
 ```
 
-Includes:
+Metrics reported: **Character Error Rate (CER)** and **Word Error Rate (WER)**, computed via edit distance against the fixed six-doha ground truth.
 
-* Overall performance summary
-* Difficulty distribution
-* Method comparison
-* Error statistics
+**Key result:** Sarvam AI is the strongest system evaluated (CER = 0.138, WER = 0.272), substantially outperforming Tesseract (best CER = 0.594) and zero-shot TrOCR (CER = 0.995), but still misrecognizes more than 1 in 4 words — indicating continuous handwritten Devanagari recognition remains largely unsolved.
+
+### Synthetic Reference Control
+
+To isolate whether OCR errors stem from genuine handwriting complexity or system limitations, a 60-page synthetic reference set (same six-doha text, generated via prompt-based handwriting synthesis with varied stroke/slant/spacing) is evaluated alongside the real dataset:
+
+```bash
+cd eval_dohascript/
+python synthetic_reference_eval.py
+```
+
+Sarvam AI achieves CER = 0.065 / WER = 0.142 on synthetic pages vs. CER = 0.138 / WER = 0.272 on real pages — a ~2× gap confirming that authentic, writer-attributed handwriting is meaningfully harder than clean synthetic approximations, and that benchmarks relying solely on synthetic data would overestimate real-world accuracy.
+
+---
+
+## 🧪 New: Handwriting Generation Baseline (GANwriting)
+
+A word-level generative baseline, adapted from GANwriting, is included to demonstrate that the dataset's shared-lexicon design supports writer-conditioned style synthesis:
+
+```bash
+cd adapted-GANwriting/
+python train.py
+```
+
+Adaptations for Devanagari:
+
+* Vocabulary extended to independent vowels, consonants, matras, and conjuncts
+* Text rendering modified to compose the shirorekha and vertically-stacked conjuncts
+* Input resolution widened for the larger horizontal extent of Hindi words
+
+**Key results (50,000 training epochs):**
+
+* CER on generated words drops from 100% → 32.31%; CER on **swapped-word** generation (novel lexical content, same writer style) drops to 15.58% — lower than direct generation, confirming style is preserved independent of content.
+* Handwriting-domain distributional metrics (HFID = 47.09, KID = 0.234, real–gen cosine similarity = 0.844) show generated samples occupy the same broad embedding region as real handwriting.
+* Training is stable across all 50,000 adversarial steps with no discriminator/generator collapse.
+
+This baseline is not intended as state-of-the-art synthesis, but establishes the dataset as a reproducible benchmark for generative handwriting and style-transfer research on low-resource Indic scripts. Page-level generation is left as future work (see paper Appendix E for rationale on word-level scope).
 
 ---
 
 ## Publication-Quality Figures
 
-After segmentation completes, run:
+After segmentation, OCR benchmarking, and generation experiments complete, run:
 
 ```bash
 python generate_paper_figures.py
@@ -202,6 +241,8 @@ Generates:
 * Difficulty analysis
 * Feature correlation heatmap
 * Processing time plots
+* OCR CER/WER comparison charts
+* Generation training curves (CER, HFID, KID over training)
 
 Saved to:
 
@@ -218,6 +259,7 @@ The notebook `quality.ipynb` implements:
 * Laplacian blur score computation
 * Binary + four-class CNN quality classifiers
 * Dataset refinement into high-quality core subset
+* Inter-rater validation against independent human judgment (Cohen's κ = 0.89 for quality, κ = 0.84 for segmentation difficulty)
 
 Binary filtering retained:
 
@@ -227,9 +269,12 @@ Binary filtering retained:
 
 ## Key Contributions
 
-* First large-scale continuous handwritten Hindi dataset validation
-* Automated quality separation beyond fixed blur thresholds
+* First large-scale continuous handwritten Hindi dataset with writer-attributed, page-level real handwriting
+* Automated quality separation beyond fixed blur thresholds, validated against human raters
 * Full-page line segmentation difficulty profiling
+* Multi-system OCR benchmarking (Tesseract, TrOCR, Sarvam AI) establishing that continuous Devanagari recognition remains an open problem
+* Synthetic-vs-real OCR comparison isolating genuine handwriting difficulty from system limitations
+* A word-level generative baseline demonstrating writer-style disentanglement from lexical content
 * Research-ready statistics, tables, and plots
 
 ---
@@ -239,10 +284,10 @@ Binary filtering retained:
 If you use this pipeline or dataset, please cite:
 
 ```bibtex
-@article{dohaScript2026,
-  title={DohaScript: A Large-Scale Multi-Writer Dataset for Continuous Handwritten Hindi Text},
+@article{devanagariBenchmark2027,
+  title={A Parallel Multi-Writer Benchmark for Continuous Handwritten Devanagari Recognition},
   author={Singh, Kunwar Arpit and Prakash, Ankush and Lone, Haroon R.},
-  year={2026}
+  year={2027}
 }
 ```
 
