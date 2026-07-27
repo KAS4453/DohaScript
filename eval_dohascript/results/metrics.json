@@ -1,0 +1,84 @@
+{
+  "config": {
+    "real_dir": "images2",
+    "generated_dir": "img5",
+    "encoder": "microsoft/trocr-base-handwritten",
+    "embedding_dim": 768,
+    "n_real_images": 7869,
+    "n_generated_images": 18416,
+    "device": "cuda",
+    "seed": 42
+  },
+  "hfid": {
+    "value": 47.09343045325494,
+    "bootstrap": {
+      "mean": 47.13841077509021,
+      "std": 0.15825488924094408,
+      "ci_95_low": 46.81928626026955,
+      "ci_95_high": 47.427068084773346,
+      "n_bootstrap": 1000
+    }
+  },
+  "kid": {
+    "mean": 0.23440818181818185,
+    "std": 0.010810192750489039,
+    "subset_size": 100,
+    "n_subsets": 10
+  },
+  "mmd": {
+    "mmd2": 0.6442324018384086,
+    "gamma": 0.01631650005514084
+  },
+  "prdc": {
+    "precision": 5.4300608166811465e-05,
+    "recall": 0.11653323166857288,
+    "density": 1.0860121633362293e-05,
+    "coverage": 0.00012708095056551024,
+    "k": 5
+  },
+  "cosine_similarity": {
+    "real_vs_real": {
+      "mean": 0.9288974404335022,
+      "std": 0.032449740916490555
+    },
+    "gen_vs_gen": {
+      "mean": 0.9546845555305481,
+      "std": 0.024054095149040222
+    },
+    "real_vs_gen": {
+      "mean": 0.8437989354133606,
+      "std": 0.03847483545541763
+    }
+  },
+  "feature_norms": {
+    "real": {
+      "mean": 14.21535873413086,
+      "std": 0.41937053203582764
+    },
+    "generated": {
+      "mean": 14.075169563293457,
+      "std": 0.7179014086723328
+    }
+  },
+  "runtime_seconds": 1658.8402779102325,
+  "package_versions": {
+    "python": "3.11.9",
+    "torch": "2.3.1+cu121",
+    "torchvision": "0.18.1+cu121",
+    "transformers": "4.41.2",
+    "numpy": "1.26.4",
+    "scipy": "1.13.0",
+    "matplotlib": "3.9.0",
+    "sklearn": "1.5.0",
+    "umap": "0.5.6"
+  },
+  "plots": {
+    "hfid_bootstrap": "results\\hfid_bootstrap.png",
+    "pca_embeddings": "results\\pca_embeddings.png",
+    "tsne_embeddings": "results\\tsne_embeddings.png",
+    "umap_embeddings": "results\\umap_embeddings.png",
+    "cosine_similarity": "results\\cosine_similarity.png",
+    "feature_norm_distribution": "results\\feature_norm_distribution.png",
+    "retrieval_examples": "results\\retrieval_examples.png"
+  }
+}
